@@ -250,6 +250,44 @@ class DiscriminatorMidBlock(Module):
         return self.avg_pool(x)
 
 
+class DiscriminatorInitialBlock(Module):
+    "Implementation of the final block of the discriminator/critic"
+
+    def __init__(
+            self, in_channel, out_channel, img_channel=3, 
+            dimension_reduction=2, kernel_size=(3,3), stride=(1,1), 
+            padding = (1,1), activation=LeakyReLU(0.2)) -> Tensor:
+        super().__init__()
+
+        self.activation = activation
+        self.from_rgb = FromRGB(
+            img_channels=img_channel,
+            out_channels=in_channel
+            )
+        self.conv_first = Conv2d(
+            in_channels=in_channel + 1,
+            out_channels=in_channel,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding
+            )
+        self.conv_second = Conv2d(
+            in_channels=in_channel,
+            out_channels=out_channel,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding
+            )
+        self.avg_pool = AvgPool2d(
+            kernel_size=dimension_reduction, 
+            stride=dimension_reduction
+            )
+    
+    def forward(self, o):
+        x = minbatchstd(self.from_rgb(o))
+        x = self.activation(self.conv_first(x))
+        x = self.activation(self.conv_second(x))
+        return self.avg_pool(x)
 
         
         
@@ -264,12 +302,14 @@ class DiscriminatorMidBlock(Module):
 if __name__ == "__main__":
     
     dev = device("cuda:0")
-    a_prime = randn(5, 512, 8, 8).to(dev)
+
+    o0 = randn(5, 3, 16, 16).to(dev)
     o1 = randn(5, 3, 8, 8).to(dev)
     o2 = randn(5, 3, 4, 4).to(dev)
+    d_i = DiscriminatorInitialBlock(512, 512).to(dev)
     d_m = DiscriminatorMidBlock(512, 512).to(dev)
-    d = DiscriminatorFinalBlock(512).to(dev)
-    print(d(d_m(a_prime, o1), o2).shape)
+    d_f = DiscriminatorFinalBlock(512).to(dev)
+    print(d_f(d_m(d_i(o0), o1), o2).shape)
 
 """     a1 = GeneratorInitialBlock(512, 4, 512).to(dev)
     a2 = GeneratorBlock(512,512,2).to(dev)
