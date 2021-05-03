@@ -1,8 +1,8 @@
 from torch.nn import (
     Module, ModuleList, LeakyReLU
-) 
+    ) 
 
-from torch import randn, device
+from torch import randn, device, save
 from collections import OrderedDict
 
 from custom import (
@@ -69,6 +69,9 @@ class Generator(Module):
 
         return imgs_out
     
+    def save(self, address):
+        save(self, address)
+
 
 class Discriminator(Module):
     "Discriminator of the MSG-GAN."
@@ -141,6 +144,9 @@ class Discriminator(Module):
             x = self.blocks[blk](x, img_dict[idx[blk]])
         return x
     
+    def save(self, address):
+        save(self, address)
+
 
 if __name__ == "__main__":
     
@@ -151,5 +157,3 @@ if __name__ == "__main__":
         dis = Discriminator(6).to(dev)
         h = gen(z)
         print(dis(h).shape)
-
-
