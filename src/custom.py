@@ -1,16 +1,11 @@
 from torch.nn import (
     Module, Linear, Conv2d, Upsample, 
-    AvgPool2d, LeakyReLU, Sequential
+    AvgPool2d, LeakyReLU
     )
 
 from torch import (
-    sqrt, var, cat, randn, Tensor, device,
-    squeeze
+    sqrt, var, cat, randn, Tensor, device
 )
-
-import torch 
-
-from time import time
 
 def pixel_norm(x, epsilon=1e-8):
     """Return the pixel norm of the input.
@@ -171,7 +166,7 @@ class DiscriminatorFinalBlock(Module):
     "Implementation of the final block of the discriminator/critic"
 
     def __init__(
-            self, in_channel, spatial_dimension=4,
+            self, in_channel, out_channel, spatial_dimension=4,
             img_channel=3, kernel_size = (3,3), stride = (1,1), 
             padding = (1,1), activation=LeakyReLU(0.2), 
             scheme="simple") -> Tensor:
@@ -192,11 +187,11 @@ class DiscriminatorFinalBlock(Module):
             )
         self.conv_second = Conv2d(
             in_channels=in_channel,
-            out_channels=in_channel,
-            kernel_size=4
+            out_channels=out_channel,
+            kernel_size=spatial_dimension
             )
         self.linear = Linear(
-            in_features=in_channel,
+            in_features=out_channel,
             out_features=1)
     
     def forward(self, a_prime, o):
@@ -251,7 +246,7 @@ class DiscriminatorMidBlock(Module):
 
 
 class DiscriminatorInitialBlock(Module):
-    "Implementation of the final block of the discriminator/critic"
+    "Implementation of the initial block of the discriminator/critic"
 
     def __init__(
             self, in_channel, out_channel, img_channel=3, 
@@ -289,18 +284,10 @@ class DiscriminatorInitialBlock(Module):
         x = self.activation(self.conv_second(x))
         return self.avg_pool(x)
 
-        
-        
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     
+    """
     dev = device("cuda:0")
 
     o0 = randn(5, 3, 16, 16).to(dev)
@@ -311,7 +298,7 @@ if __name__ == "__main__":
     d_f = DiscriminatorFinalBlock(512).to(dev)
     print(d_f(d_m(d_i(o0), o1), o2).shape)
 
-"""     a1 = GeneratorInitialBlock(512, 4, 512).to(dev)
+    a1 = GeneratorInitialBlock(512, 4, 512).to(dev)
     a2 = GeneratorBlock(512,512,2).to(dev)
     a3 = GeneratorBlock(512,512,2).to(dev) 
     a4 = GeneratorBlock(512,512,2).to(dev) 
@@ -322,5 +309,5 @@ if __name__ == "__main__":
         
         y = a6(a5(a4(a3(a2(a1(x)[0])[0])[0])[0])[0])[0]
         print(y.shape)
- """
+    """
     
