@@ -1,8 +1,11 @@
+from torch.functional import Tensor
 from torch.nn import (
     Module, ModuleList, LeakyReLU
     ) 
 
-from torch import randn, device, save
+import torch.autograd
+from torch.linalg import norm
+from torch import randn, device, save, rand, ones_like, ones, cat,unsqueeze
 from collections import OrderedDict
 
 from custom import (
@@ -13,6 +16,7 @@ from custom import (
     DiscriminatorFinalBlock
     )
 
+import numpy as np
 
 class Generator(Module):
     "Generator of the MSG-GAN."
@@ -151,9 +155,40 @@ class Discriminator(Module):
 if __name__ == "__main__":
     
     dev = device("cuda:0")
-    for i in range(100):
-        z = randn(5, 512, 1).to(dev)
-        gen = Generator(6).to(dev)
-        dis = Discriminator(6).to(dev)
-        h = gen(z)
-        print(dis(h).shape)
+    # for i in range(100):
+    num = 6
+    z = randn(5, 512, 1).to(dev)
+    gen = Generator(num).to(dev)
+    dis = Discriminator(num).to(dev)
+    h = gen(z)
+    f = dis(h)
+    epsilon = rand(
+        size=(num, h[0].shape[0], *np.ones(len(h[0].shape) - 1).astype(int)),
+        device=h[0].device, requires_grad=True
+    )
+    x_hat = OrderedDict()
+    for layer in range(num):
+        x_hat[layer] = (epsilon[layer] * ones_like(h[layer], requires_grad=True)  + (1-epsilon[layer]) * h[layer]).requires_grad_(True)
+    
+    output = dis(x_hat)
+    
+    b = torch.autograd.grad(
+        output, 
+        [x_hat[i] for i in x_hat.keys()], 
+        grad_outputs=ones_like(output, 
+        requires_grad=True),
+        create_graph=True,
+        retain_graph=True
+    )
+    
+    c = cat(
+        [
+            (
+                (
+                    norm(i.reshape(output.shape[0], -1), ord=2, dim=1) 
+                    - ones(output.shape[0], requires_grad=True, device=f.device)
+            ) ** 2.).unsqueeze(1) for i in b], 1).mean()
+    print(c)
+    
+
+
