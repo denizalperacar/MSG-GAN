@@ -1,7 +1,9 @@
 from torch.nn import (
-    Module, Linear, Conv2d, Upsample, 
+    Module, Upsample, 
     AvgPool2d, LeakyReLU
     )
+
+import torch.nn as nn
 
 from torch import (
     sqrt, var, cat, randn, Tensor, device
@@ -33,6 +35,48 @@ def minbatchstd(x, group_size=5):
     y = y.reshape(-1, 1, x_size[2], x_size[3])
     x = cat([x, y], dim=1)
     return x
+
+
+class Linear(Module):
+    "Overloading the Linear layer for compatibility with paper."
+
+    def __init__(self, in_features, out_features, bias=True):
+        super().__init__()
+        self.linear = nn.Linear(in_features, out_features, bias)
+        self.reset_parameters()
+    
+    def reset_parameters(self):
+        nn.init.kaiming_normal_(self.linear.weight)
+        nn.init.kaiming_normal_(self.linear.bias)
+
+    def forward(self, x):
+        return self.linear(x)
+    
+
+class Conv2d(Module):
+    "Overloading the Conv2d layer for compatibility with paper."
+
+    def __init__(
+        self, in_channels, out_channels, 
+        kernel_size, stride, padding):
+        super().__init__()
+
+        self.conv2d = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding
+        )
+
+        self.reset_parameters()
+    
+    def reset_parameters(self):
+        nn.init.kaiming_normal_(self.conv2d.weight)
+        nn.init.kaiming_normal_(self.conv2d.bias)
+    
+    def forward(self, x):
+        return self.conv2d(x)
 
 
 class PhiScheme(Module):
