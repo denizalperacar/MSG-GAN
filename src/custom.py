@@ -354,19 +354,26 @@ class LossTracker:
     def __init__(
             self, num_iters=100, 
             save_iters=100, 
-            save_dir="../stats"
+            eps=1e-4,
+            save_dir="../stats",
+            save_name="discriminator_loss"
             ):
         self.num_iters = num_iters
         self.save_iters = save_iters
+        self.eps = eps
         self.save_dir = save_dir
+        self.save_name = save_name
         self.loss_tracker = []
         self.tracker = []
+        self.current = 0.
+        self.previous = 100.
 
         if not os.Path.exists(save_dir):
             os.mkdir(save_dir)
     
     def append(self, x):
-        self.tracker.append(x)
+        self.current = x[0]
+        self.tracker.append(x[0])
         if len(self.tracker) == self.num_iters:
             tracker = array(self.tracker)
             self.loss_tracker.append([
@@ -377,8 +384,15 @@ class LossTracker:
                 ])
             self.tracker = []
         if len(self.loss_tracker) % self.save_iters:
-            with open(f"{self.save_dir}/loss_tracker.pickle", "wb") as fid:
+            with open(f"{self.save_dir}/{self.save_name}.pickle", "wb") as fid:
                 pickle.dump(self.loss_tracker, fid)
+    
+    def converged(self):
+        if abs(self.current - self.previous) < self.eps:
+            return True
+        else:
+            self.previous = self.current
+            return False
 
 
 if __name__ == "__main__":

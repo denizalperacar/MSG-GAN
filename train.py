@@ -5,6 +5,7 @@ import os
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, ToTensor
+from torchvision.utils import save_image
 from os import getcwd
 from time import time, sleep
 
@@ -26,13 +27,14 @@ parser.add_argument("--latent_dim", type=int, default=512, help="dimensionality 
 parser.add_argument("--num_blocks_gen", type=int, default=6, help="number of generator blocks")
 parser.add_argument("--num_blocks_dis", type=int, default=6, help="number of discriminator blocks")
 parser.add_argument("--use_gpu", type=bool, default=True, help="Use GPU for training")
-parser.add_argument("--save_skips", type=int, default=20, help="number of epochs to skip saving the model")
+parser.add_argument("--save_skips", type=int, default=200, help="number of epochs to skip saving the model")
 parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Continue from the last checkpoint")
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
-parser.add_argument("--n_critic", type=int, default=1, help="the number of critic iterations per generator iteration")
+parser.add_argument("--n_disc", type=int, default=1, help="the number of discriminator iterations per generator iteration")
 parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dataset either CIFAR10 or CelebA")
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
+parser.add_argument("--gen_steps", type=int, default=1000, help="save the image of the generated images each gen_steps")
 
 
 
@@ -69,19 +71,26 @@ discriminator_optimizer = RMSprop(
 
 # loading the data
 data_loader = DataLoader(
-    opt.dataset, opt.batch_size, opt.num_blocks_dis
+    opt.dataset, opt.batch_size, opt.num_blocks_dis, device
     )
 
 # track loss stats of the model
-loss_tracker = LossTracker(100, 100)
+discriminator_loss_tracker = LossTracker(
+    100, 100, save_name="disc", eps=opt.conv_crit
+    )
+generator_loss_tracker = LossTracker(
+    100, 100, save_name="gen", eps=opt.conv_crit
+    )
 
 # while theta has not converged do: 
 # from Improved training of Wasserstein GANs p-4
 
 converged = False
 loss_tracker = []
+counter = 0
 while not converged:
     
+    counter += 1
     start_time = time()
     loss_tracker = []
     for t in range(opt.n_disc):
@@ -89,20 +98,56 @@ while not converged:
             (opt.batch_size, 512), requires_grad=True
             ).to(device)
 
-        fake_results = generator(latent_variable)
-        real_results = data_loader.load_images()
+        fake_images = generator(latent_variable)
+        real_images = data_loader.load_images()
 
         discriminator_optimizer.zero_grad()
         discriminator_loss = WGANGP_loss(
             discriminator=discriminator, 
-            from_real=real_results,
-            from_fake=fake_results
+            from_real=real_images,
+            from_fake=fake_images
             )
-        loss_tracker.append(discriminator_loss.tolist())
+        discriminator_loss_tracker.append(discriminator_loss.tolist())
         discriminator_loss.backward()
         discriminator_optimizer.step()
     
+    # update the generator
+    latent_variable = torch.randn(
+        (opt.batch_size, 512), requires_grad=True
+        ).to(device)   
+
+    fake_images = generator(latent_variable) 
+    generator_optimizer.zero_grad()
+    generator_loss = -discriminator(fake_images).mean()
+    generator_loss_tracker.append(generator_loss.tolist())
+    generator_loss.backward()
+    generator_optimizer.step()
+
+    # check the convergence
+    gen_conv = generator_loss_tracker.converged()
+    dis_conv = discriminator_loss_tracker.converged()
+    converged = gen_conv and dis_conv
+
+    if counter % opt.save_skips == 0:
+        generator.save(f"{opt.save_dir}/generator.to")
+        discriminator.save(f"{opt.save_dir}/discriminator.to")
     
+    if counter % opt.gen_steps == 0:
+        
+        # TODO implement this
+        """
+        latent_variable = torch.randn(
+            (opt.batch_size, 512), requires_grad=True
+            ).to(device)
+        fake_images = generator(latent_variable)
+        save_image(fake_images.data[:25], "images/%d.png" % counter, nrow=5, normalize=True)
+        """
+        pass
+
+
+
+
+
 
 
 
