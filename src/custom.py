@@ -329,6 +329,15 @@ class DiscriminatorInitialBlock(Module):
         return self.avg_pool(x)
 
 
+class DataLoader:
+
+    def __init__(self, dataset:str):
+        pass
+
+    def load_images(self):
+        pass
+
+
 if __name__ == "__main__":
     
     """

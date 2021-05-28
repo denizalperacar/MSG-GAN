@@ -8,7 +8,7 @@ from torchvision.transforms import Compose, ToTensor
 from os import getcwd
 from time import time, sleep
 
-from .src.loss import gradient_penalty_loss
+from .src.loss import WGANGP_loss
 from .src.model import Generator, Discriminator
 
 
@@ -29,6 +29,8 @@ parser.add_argument("--save_skips", type=int, default=20, help="number of epochs
 parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Continue from the last checkpoint")
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
+parser.add_argument("--n_critic", type=int, default=1, help="the number of critic iterations per generator iteration")
+
 
 opt = parser.parse_args()
 
@@ -50,9 +52,26 @@ if opt.continue_checkpoint:
     discriminator = torch.load(f'{opt.save_dir}/discriminator.to')
 
 # Define the optimizers
-generator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2))
-discriminator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2))
+generator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2)).to(device)
+discriminator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2)).to(device)
 
+
+# loading the data
+
+    
+
+
+# slightly modified version of Improved training of Wasserstein GANs p-4
+for epoch in range(opt.num_epochs):
+    
+    start_time = time()
+    for t in range(opt.n_critic):
+        latent_variable = torch.randn(
+            (opt.batch_size, 512), requires_grad=True
+            ).to(device)
+
+    fake_results = generator(latent_variable)
+    real_results = load_images()
 
 
 
