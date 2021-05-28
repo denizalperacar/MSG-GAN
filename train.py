@@ -10,6 +10,7 @@ from time import time, sleep
 
 from .src.loss import WGANGP_loss
 from .src.model import Generator, Discriminator
+from .src.custom import DataLoader, LossTracker
 
 
 
@@ -30,6 +31,9 @@ parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Cont
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
 parser.add_argument("--n_critic", type=int, default=1, help="the number of critic iterations per generator iteration")
+parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dataset either CIFAR10 or CelebA")
+parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
+
 
 
 opt = parser.parse_args()
@@ -52,26 +56,56 @@ if opt.continue_checkpoint:
     discriminator = torch.load(f'{opt.save_dir}/discriminator.to')
 
 # Define the optimizers
-generator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2)).to(device)
-discriminator_optimizer = RMSprop(generator.parameters, lr=opt.lr, betas=(opt.b1, opt.b2)).to(device)
-
+generator_optimizer = RMSprop(
+    generator.parameters, 
+    lr=opt.lr, 
+    betas=(opt.b1, opt.b2)
+    ).to(device)
+discriminator_optimizer = RMSprop(
+    generator.parameters, 
+    lr=opt.lr, 
+    betas=(opt.b1, opt.b2)
+    ).to(device)
 
 # loading the data
+data_loader = DataLoader(
+    opt.dataset, opt.batch_size, opt.num_blocks_dis
+    )
 
-    
+# track loss stats of the model
+loss_tracker = LossTracker(100, 100)
 
+# while theta has not converged do: 
+# from Improved training of Wasserstein GANs p-4
 
-# slightly modified version of Improved training of Wasserstein GANs p-4
-for epoch in range(opt.num_epochs):
+converged = False
+loss_tracker = []
+while not converged:
     
     start_time = time()
-    for t in range(opt.n_critic):
+    loss_tracker = []
+    for t in range(opt.n_disc):
         latent_variable = torch.randn(
             (opt.batch_size, 512), requires_grad=True
             ).to(device)
 
-    fake_results = generator(latent_variable)
-    real_results = load_images()
+        fake_results = generator(latent_variable)
+        real_results = data_loader.load_images()
+
+        discriminator_optimizer.zero_grad()
+        discriminator_loss = WGANGP_loss(
+            discriminator=discriminator, 
+            from_real=real_results,
+            from_fake=fake_results
+            )
+        loss_tracker.append(discriminator_loss.tolist())
+        discriminator_loss.backward()
+        discriminator_optimizer.step()
+    
+    
+
+
+
 
 
 

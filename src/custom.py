@@ -8,6 +8,11 @@ import torch.nn as nn
 from torch import (
     sqrt, var, cat, randn, Tensor, device
 )
+from torch.serialization import save
+from numpy import array
+import pickle
+import os
+
 
 def pixel_norm(x, epsilon=1e-8):
     """Return the pixel norm of the input.
@@ -336,6 +341,44 @@ class DataLoader:
 
     def load_images(self):
         pass
+
+
+class LossTracker:
+    """Tracks the loss
+    Adds the statistics of the loss each num_iters times
+    to loss_tracker list.
+    Saves the results to a pickle each num_iters * save_iters
+    times.
+    """
+
+    def __init__(
+            self, num_iters=100, 
+            save_iters=100, 
+            save_dir="../stats"
+            ):
+        self.num_iters = num_iters
+        self.save_iters = save_iters
+        self.save_dir = save_dir
+        self.loss_tracker = []
+        self.tracker = []
+
+        if not os.Path.exists(save_dir):
+            os.mkdir(save_dir)
+    
+    def append(self, x):
+        self.tracker.append(x)
+        if len(self.tracker) == self.num_iters:
+            tracker = array(self.tracker)
+            self.loss_tracker.append([
+                tracker.mean(),
+                tracker.min(),
+                tracker.max(),
+                tracker.std()
+                ])
+            self.tracker = []
+        if len(self.loss_tracker) % self.save_iters:
+            with open(f"{self.save_dir}/loss_tracker.pickle", "wb") as fid:
+                pickle.dump(self.loss_tracker, fid)
 
 
 if __name__ == "__main__":
