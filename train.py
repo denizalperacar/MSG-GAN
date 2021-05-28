@@ -36,9 +36,13 @@ parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dat
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
 parser.add_argument("--gen_steps", type=int, default=1000, help="save the image of the generated images each gen_steps")
 
-
-
 opt = parser.parse_args()
+
+print_string = (
+    'iterations {:05d} discriminator loss stats' 
+    + '|mean {:16.08f} |min {:16.08f} | max {:16.08f} '
+    + '| std {:16.08f} |time {:16.08f}s'
+    )
 
 # Check if the required directories exist
 if not os.Path.exists(opt.save_dir):
@@ -88,10 +92,10 @@ generator_loss_tracker = LossTracker(
 converged = False
 loss_tracker = []
 counter = 0
+start_time = time()
 while not converged:
     
     counter += 1
-    start_time = time()
     loss_tracker = []
     for t in range(opt.n_disc):
         latent_variable = torch.randn(
@@ -133,7 +137,7 @@ while not converged:
         discriminator.save(f"{opt.save_dir}/discriminator.to")
     
     if counter % opt.gen_steps == 0:
-        
+
         # TODO implement this
         """
         latent_variable = torch.randn(
@@ -142,6 +146,13 @@ while not converged:
         fake_images = generator(latent_variable)
         save_image(fake_images.data[:25], "images/%d.png" % counter, nrow=5, normalize=True)
         """
+        
+        # statistics of discriminator
+        print(print_string.format(
+            counter, 
+            *discriminator_loss_tracker.loss_tracker[-1],
+            time()-start_time))
+        start_time = time()
         pass
 
 

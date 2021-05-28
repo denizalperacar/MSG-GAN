@@ -374,7 +374,10 @@ class LossTracker:
     def append(self, x):
         self.current = x[0]
         self.tracker.append(x[0])
-        if len(self.tracker) == self.num_iters:
+        if (
+            len(self.tracker) == self.num_iters == 0 
+            or (len(self.tracker) == 1 and len(self.LossTracker) == 0)
+            ):
             tracker = array(self.tracker)
             self.loss_tracker.append([
                 tracker.mean(),
@@ -383,7 +386,7 @@ class LossTracker:
                 tracker.std()
                 ])
             self.tracker = []
-        if len(self.loss_tracker) % self.save_iters:
+        if len(self.loss_tracker) % (self.save_iters * self.num_iters)  == 0:
             with open(f"{self.save_dir}/{self.save_name}.pickle", "wb") as fid:
                 pickle.dump(self.loss_tracker, fid)
     
