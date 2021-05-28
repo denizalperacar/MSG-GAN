@@ -5,7 +5,9 @@ from torch.nn import (
 
 import torch.autograd
 from torch.linalg import norm
-from torch import randn, device, save, rand, ones_like, ones, cat,unsqueeze
+from torch import (
+    randn, device, save, rand, ones_like, ones, cat,unsqueeze
+    )
 from collections import OrderedDict
 
 from custom import (
@@ -151,7 +153,7 @@ class Discriminator(Module):
     def save(self, address):
         save(self, address)
 
-
+"""
 if __name__ == "__main__":
     
     dev = device("cuda:0")
@@ -189,6 +191,6 @@ if __name__ == "__main__":
                     - ones(output.shape[0], requires_grad=True, device=f.device)
             ) ** 2.).unsqueeze(1) for i in b], 1).mean()
     print(c)
-    
+"""
 
 
