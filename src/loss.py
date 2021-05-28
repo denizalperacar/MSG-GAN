@@ -1,7 +1,7 @@
 from torch import Tensor, rand, randn, ones_like, cat, norm
 from torch.autograd import grad
 from numpy import ones
-from model import Discriminator
+from .model import Discriminator
 from collections import OrderedDict
 
 def gradient_penalty_loss(discriminator, from_real, from_fake):
@@ -36,7 +36,7 @@ def gradient_penalty_loss(discriminator, from_real, from_fake):
     return output
 
 
-def WGANGP_loss(discriminator, from_real, from_fake, lamda):
+def WGANGP_loss(discriminator, from_real, from_fake, lamda=10.):
      return (
          discriminator(from_fake).mean()
          - discriminator(from_real).mean() 

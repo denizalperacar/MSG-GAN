@@ -10,7 +10,7 @@ from torch import (
     )
 from collections import OrderedDict
 
-from custom import (
+from .custom import (
     GeneratorInitialBlock, 
     GeneratorBlock, 
     DiscriminatorInitialBlock,

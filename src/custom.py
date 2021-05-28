@@ -21,7 +21,7 @@ def pixel_norm(x, epsilon=1e-8):
     return x / sqrt((x**2.).mean(axis=1, keepdim=True) + epsilon)
 
 
-def minbatchstd(x, group_size=5):
+def minbatchstd(x, group_size=8):
     """Implementation of the minbatch standard deviation.
     """
     
@@ -52,7 +52,6 @@ class Linear(Module):
     
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.linear.weight)
-        nn.init.kaiming_normal_(self.linear.bias)
 
     def forward(self, x):
         return self.linear(x)
@@ -63,7 +62,10 @@ class Conv2d(Module):
 
     def __init__(
         self, in_channels, out_channels, 
-        kernel_size, stride, padding):
+        kernel_size=(3,3), 
+        stride=(1,1), 
+        padding=(1,1)
+        ):
         super().__init__()
 
         self.conv2d = nn.Conv2d(
@@ -78,7 +80,6 @@ class Conv2d(Module):
     
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.conv2d.weight)
-        nn.init.kaiming_normal_(self.conv2d.bias)
     
     def forward(self, x):
         return self.conv2d(x)
@@ -143,7 +144,7 @@ class GeneratorInitialBlock(Module):
         self.img_channels = img_channels
 
         self.activation = activation
-        self.linear = Linear(1, int(spatial_dimension ** 2.))
+        self.linear = Linear(in_dimension, in_dimension * int(spatial_dimension ** 2.))
         self.conv = Conv2d(
             in_channels=in_dimension, 
             out_channels=out_channels, 
@@ -334,15 +335,6 @@ class DiscriminatorInitialBlock(Module):
         return self.avg_pool(x)
 
 
-class DataLoader:
-
-    def __init__(self, dataset:str):
-        pass
-
-    def load_images(self):
-        pass
-
-
 class LossTracker:
     """Tracks the loss
     Adds the statistics of the loss each num_iters times
@@ -368,7 +360,7 @@ class LossTracker:
         self.current = 0.
         self.previous = 100.
 
-        if not os.Path.exists(save_dir):
+        if not os.path.exists(save_dir):
             os.mkdir(save_dir)
     
     def append(self, x):
