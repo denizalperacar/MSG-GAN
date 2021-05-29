@@ -21,7 +21,7 @@ def pixel_norm(x, epsilon=1e-8):
     return x / sqrt((x**2.).mean(axis=1, keepdim=True) + epsilon)
 
 
-def minbatchstd(x, group_size=8):
+def minbatchstd(x, group_size=4):
     """Implementation of the minbatch standard deviation.
     """
     
@@ -64,7 +64,7 @@ class Conv2d(Module):
         self, in_channels, out_channels, 
         kernel_size=(3,3), 
         stride=(1,1), 
-        padding=(1,1)
+        padding=(0,0)
         ):
         super().__init__()
 
@@ -135,7 +135,7 @@ class GeneratorInitialBlock(Module):
     def __init__(
             self, in_dimension=512, spatial_dimension=4, out_channels=512, 
             img_channels=3, kernel_size = (3,3), stride = (1,1), 
-            padding = (1,1), activation=LeakyReLU(0.2)) -> Tensor:
+            padding = (0,0), activation=LeakyReLU(0.2)) -> Tensor:
         super().__init__()
         
         self.in_dimension = in_dimension
@@ -395,9 +395,9 @@ if __name__ == "__main__":
     """
     dev = device("cuda:0")
 
-    o0 = randn(5, 3, 16, 16).to(dev)
-    o1 = randn(5, 3, 8, 8).to(dev)
-    o2 = randn(5, 3, 4, 4).to(dev)
+    o0 = randn(8, 3, 16, 16).to(dev)
+    o1 = randn(8, 3, 8, 8).to(dev)
+    o2 = randn(8, 3, 4, 4).to(dev)
     d_i = DiscriminatorInitialBlock(512, 512).to(dev)
     d_m = DiscriminatorMidBlock(512, 512).to(dev)
     d_f = DiscriminatorFinalBlock(512).to(dev)

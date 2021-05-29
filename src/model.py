@@ -10,7 +10,7 @@ from torch import (
     )
 from collections import OrderedDict
 
-from .custom import (
+from custom import (
     GeneratorInitialBlock, 
     GeneratorBlock, 
     DiscriminatorInitialBlock,
@@ -153,17 +153,23 @@ class Discriminator(Module):
     def save(self, address):
         save(self, address)
 
-"""
+
 if __name__ == "__main__":
     
     dev = device("cuda:0")
     # for i in range(100):
     num = 6
-    z = randn(5, 512, 1).to(dev)
+    z = randn(8, 512).to(dev)
     gen = Generator(num).to(dev)
     dis = Discriminator(num).to(dev)
     h = gen(z)
+
+    for i in h.keys():
+        print(h[i].shape) 
+
     f = dis(h)
+
+    """ 
     epsilon = rand(
         size=(num, h[0].shape[0], *np.ones(len(h[0].shape) - 1).astype(int)),
         device=h[0].device, requires_grad=True
@@ -191,6 +197,6 @@ if __name__ == "__main__":
                     - ones(output.shape[0], requires_grad=True, device=f.device)
             ) ** 2.).unsqueeze(1) for i in b], 1).mean()
     print(c)
-"""
+ """
 
 
