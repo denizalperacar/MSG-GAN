@@ -31,7 +31,7 @@ def pixel_norm(x, epsilon=1e-8):
     return x / sqrt((x**2.).mean(axis=1, keepdim=True) + epsilon)
 
 
-def minbatchstd(x, group_size=4):
+def minbatchstd(x, group_size=4, eps=1e-8):
     """Implementation of the minbatch standard deviation.
     """
     
@@ -42,6 +42,7 @@ def minbatchstd(x, group_size=4):
     group_len = x_size[0] // group_size
     y = x.view(group_len, group_size, *x_size[1:])
     y = var(y, dim=1)
+    y = torch.sqrt(y + eps)
     y = y.view(group_len, -1)
     y = y.mean(dim=1).view(group_len, 1)
     y = y.expand(group_len, x_size[2] * x_size[3])
@@ -169,7 +170,7 @@ class GeneratorInitialBlock(Module):
         x = self.linear(x)
         x = x.view(-1, self.in_dimension, 
             self.spatial_dimension, self.spatial_dimension)
-        x = pixel_norm(self.activation(x))
+        x = self.activation(x)
         x = pixel_norm(self.activation(self.conv(x)))
         if generate_img:
             return x, self.img_conv(x)

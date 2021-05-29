@@ -1,13 +1,7 @@
-from torch.functional import Tensor
-from torch.nn import (
-    Module, ModuleList, LeakyReLU
-    ) 
+from torch.nn import Module, ModuleList, LeakyReLU
 
-import torch.autograd
-from torch.linalg import norm
-from torch import (
-    randn, device, save, rand, ones_like, ones, cat,unsqueeze
-    )
+from torch import save
+
 from collections import OrderedDict
 
 from .custom import (
@@ -17,8 +11,6 @@ from .custom import (
     DiscriminatorMidBlock,
     DiscriminatorFinalBlock
     )
-
-import numpy as np
 
 class Generator(Module):
     "Generator of the MSG-GAN."

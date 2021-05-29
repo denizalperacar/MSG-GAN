@@ -20,25 +20,24 @@ def gradient_penalty_loss(discriminator, from_real, from_fake):
 
     for layer in range(discriminator.num_blocks):
         x_hat[layer] = (
-            epsilon[layer] * ones_like(from_fake[layer], requires_grad=True)  
+            epsilon[layer] * from_real[layer]
             + (1-epsilon[layer]) * from_fake[layer]
             ).requires_grad_(True)
-    dis_out = discriminator(x_hat)
+    dis_out = discriminator(x_hat).sum()
     grads = grad(
         dis_out, 
         [x_hat[i] for i in x_hat.keys()], 
-        grad_outputs=ones_like(dis_out, 
-        requires_grad=True),
         create_graph=True,
         retain_graph=True
         )
-    
+
     output = cat(
         [((
-            norm(i.reshape(dis_out.shape[0], -1), ord=2, dim=1) 
-            - ones(dis_out.shape[0], requires_grad=True, device=from_real[0].device)
-            ) ** 2.).unsqueeze(1) for i in grads], 1).mean()
-
+            norm(i.reshape(from_real[0].shape[0], -1), ord=2, dim=1) 
+            - ones(from_real[0].shape[0], requires_grad=True, device=from_real[0].device)
+            ) ** 2.).unsqueeze(1) for i in grads], 1)
+    
+    output = output.sum(dim=0).mean()
     return output
 
 
