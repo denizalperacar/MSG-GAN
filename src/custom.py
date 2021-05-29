@@ -1,3 +1,4 @@
+from torch.functional import norm
 from torch.nn import (
     Module, Upsample, 
     AvgPool2d, LeakyReLU
@@ -8,10 +9,19 @@ import torch.nn as nn
 from torch import (
     sqrt, var, cat, randn, Tensor, device
 )
+import torch.linalg
 from torch.serialization import save
 from numpy import array
 import pickle
 import os
+
+
+def get_latent_variable(batchsize, latent_dimension, device):
+
+    latent_var = randn(
+        (batchsize, latent_dimension), requires_grad=True
+        ).to(device)
+    return latent_var / torch.linalg.norm(latent_var, ord=2, dim=-1).reshape(latent_var.shape[0], 1)
 
 
 def pixel_norm(x, epsilon=1e-8):
@@ -123,7 +133,7 @@ class FromRGB(Module):
             out_channels=out_channels,
             kernel_size=1
         ) 
-    
+
     def forward(self, x):
         return self.from_rgb(x)
 
@@ -155,7 +165,6 @@ class GeneratorInitialBlock(Module):
             in_channels=self.out_channels, 
             out_channels=self.img_channels, 
             kernel_size=1)
-        
     def forward(self, x, generate_img=True):
         x = self.linear(x)
         x = x.view(-1, self.in_dimension, 
@@ -201,7 +210,6 @@ class GeneratorBlock(Module):
             in_channels=out_channels, 
             out_channels=img_channels, 
             kernel_size=1)        
-
     def forward(self, x, generate_img=True):
         x = self.upsample(x)
         x = pixel_norm(self.activation(self.conv_first(x)))
@@ -369,7 +377,7 @@ class LossTracker:
         self.current = x
         self.tracker.append(x)
         if (
-            len(self.tracker) == self.num_iters == 0 
+            len(self.tracker) == self.num_iters
             or (len(self.tracker) == 1 and len(self.loss_tracker) == 0)
             ):
             tracker = array(self.tracker)
@@ -394,6 +402,11 @@ class LossTracker:
 
 if __name__ == "__main__":
     
+    a = randn(10, 2, 2, 2)
+    # print(a)
+    b = pixel_norm(a)
+    # print(b)
+
     """
     dev = device("cuda:0")
 

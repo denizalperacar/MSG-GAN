@@ -5,13 +5,14 @@ import os
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, ToTensor
+from torchvision.transforms.transforms import Normalize
 from torchvision.utils import save_image
 from os import getcwd
 from time import time, sleep
 
 from src.loss import WGANGP_loss
 from src.model import Generator, Discriminator
-from src.custom import LossTracker
+from src.custom import LossTracker, get_latent_variable
 from src.data_loader import DataLoader
 
 
@@ -19,8 +20,8 @@ from src.data_loader import DataLoader
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--num_epochs", type=int, default=100, help="number of epochs of training")
-parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
-parser.add_argument("--lr", type=float, default=0.003, help="RMSPROP: learning rate")
+parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
+parser.add_argument("--lr", type=float, default=0.00001, help="RMSPROP: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--latent_dim", type=int, default=512, help="dimensionality of the latent space")
@@ -28,13 +29,13 @@ parser.add_argument("--num_blocks_gen", type=int, default=4, help="number of gen
 parser.add_argument("--num_blocks_dis", type=int, default=4, help="number of discriminator blocks")
 parser.add_argument("--use_gpu", type=bool, default=True, help="Use GPU for training")
 parser.add_argument("--save_skips", type=int, default=200, help="number of epochs to skip saving the model")
-parser.add_argument("--continue_checkpoint", type=bool, default=False, help="Continue from the last checkpoint")
+parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Continue from the last checkpoint")
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
 parser.add_argument("--n_disc", type=int, default=1, help="the number of discriminator iterations per generator iteration")
 parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dataset either CIFAR10 or CelebA")
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
-parser.add_argument("--gen_steps", type=int, default=1000, help="save the image of the generated images each gen_steps")
+parser.add_argument("--gen_steps", type=int, default=100, help="save the image of the generated images each gen_steps")
 parser.add_argument("--lamda", type=float, default=10., help="lamda used in WGAN-GP")
 
 opt = parser.parse_args()
@@ -50,6 +51,9 @@ if not os.path.exists(opt.save_dir):
     os.mkdir(opt.save_dir)
 if not os.path.exists(opt.images):
     os.mkdir(opt.images)
+if not os.path.exists(opt.images):
+    os.mkdir(opt.images)
+    
 
 device = torch.device("cuda:0") if opt.use_gpu else torch.device("cpu") 
 
@@ -59,8 +63,8 @@ discriminator = Discriminator(opt.num_blocks_dis).to(device)
 
 # Load the models if necessary
 if opt.continue_checkpoint:
-    generator = torch.load(f'{opt.save_dir}generator.to')
-    discriminator = torch.load(f'{opt.save_dir}discriminator.to')
+    generator = torch.load(f'{opt.save_dir}/generator')
+    discriminator = torch.load(f'{opt.save_dir}/discriminator')
 
 # Define the optimizers
 generator_optimizer = RMSprop(
@@ -97,11 +101,15 @@ while not converged:
     counter += 1
     loss_tracker = []
     for t in range(opt.n_disc):
-        latent_variable = torch.randn(
-            (opt.batch_size, 512), requires_grad=True
-            ).to(device)
+        latent_variable = get_latent_variable(
+            opt.batch_size, opt.latent_dim, device
+            )
 
         fake_images = generator(latent_variable)
+
+        #for i in fake_images.keys():
+        #    print(fake_images[i].mean())
+
         real_images = data_loader.load_images()
 
         discriminator_optimizer.zero_grad()
@@ -116,9 +124,9 @@ while not converged:
         discriminator_optimizer.step()
     
     # update the generator
-    latent_variable = torch.randn(
-        (opt.batch_size, 512), requires_grad=True
-        ).to(device)   
+    latent_variable = get_latent_variable(
+        opt.batch_size, opt.latent_dim, device
+        )  
 
     fake_images = generator(latent_variable) 
     generator_optimizer.zero_grad()
@@ -133,21 +141,19 @@ while not converged:
     converged = gen_conv and dis_conv
 
     if counter % opt.save_skips == 0:
-        generator.save(f"{opt.save_dir}/generator.to")
-        discriminator.save(f"{opt.save_dir}/discriminator.to")
+        generator.save(f"{opt.save_dir}/generator")
+        discriminator.save(f"{opt.save_dir}/discriminator")
     
     if counter % opt.gen_steps == 0:
         
-        if counter % (opt.gen_steps * 10) == 0:
+        if counter % (opt.gen_steps) == 0:
             # TODO implement this
-            """
-            latent_variable = torch.randn(
-                (opt.batch_size, 512), requires_grad=True
-                ).to(device)
-            fake_images = generator(latent_variable)
-            save_image(fake_images.data[:25], "images/%d.png" % counter, nrow=5, normalize=True)
-            """
-            pass
+            
+            latent_variable = get_latent_variable(
+                20, opt.latent_dim, device
+                )
+            fake_images = generator(latent_variable)[opt.num_blocks_gen-1].to("cpu")
+            save_image(fake_images.data[:20], f"{opt.images}/%d.png" % counter, nrow=5, value_range=(-1,1), normalize=True)
         
         # statistics of discriminator
         print(print_string.format(

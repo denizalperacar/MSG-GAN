@@ -43,11 +43,11 @@ def gradient_penalty_loss(discriminator, from_real, from_fake):
 
 
 def WGANGP_loss(discriminator, from_real, from_fake, lamda=10.):
-     return (
-         discriminator(from_fake).mean()
-         - discriminator(from_real).mean() 
-         + lamda * gradient_penalty_loss(discriminator, from_real, from_fake))   
-
+    return (
+        discriminator(from_fake).mean()
+        - discriminator(from_real).mean() 
+        + lamda * gradient_penalty_loss(discriminator, from_real, from_fake)
+        )   
 
 
 
