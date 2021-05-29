@@ -238,7 +238,8 @@ class DiscriminatorFinalBlock(Module):
         self.conv_second = Conv2d(
             in_channels=in_channel,
             out_channels=out_channel,
-            kernel_size=spatial_dimension
+            kernel_size=spatial_dimension, 
+            padding=0
             )
         self.linear = Linear(
             in_features=out_channel,
@@ -250,7 +251,8 @@ class DiscriminatorFinalBlock(Module):
         x = self.activation(self.conv_second(x))
         x_shape = x.shape
         x = x.reshape(x_shape[0], -1)
-        return self.linear(x)
+        x = self.linear(x)
+        return x
 
 
 class DiscriminatorMidBlock(Module):
@@ -364,11 +366,11 @@ class LossTracker:
             os.mkdir(save_dir)
     
     def append(self, x):
-        self.current = x[0]
-        self.tracker.append(x[0])
+        self.current = x
+        self.tracker.append(x)
         if (
             len(self.tracker) == self.num_iters == 0 
-            or (len(self.tracker) == 1 and len(self.LossTracker) == 0)
+            or (len(self.tracker) == 1 and len(self.loss_tracker) == 0)
             ):
             tracker = array(self.tracker)
             self.loss_tracker.append([

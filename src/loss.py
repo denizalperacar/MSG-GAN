@@ -1,15 +1,21 @@
-from torch import Tensor, rand, randn, ones_like, cat, norm
+from torch import Tensor, rand, randn, ones_like, cat, ones
+from torch.linalg import norm
 from torch.autograd import grad
-from numpy import ones
+import numpy as np
 from .model import Discriminator
 from collections import OrderedDict
 
 def gradient_penalty_loss(discriminator, from_real, from_fake):
 
     epsilon = rand(
-        size=(from_real.shape[0], *ones(len(from_real.shape) - 1)),
-        device=from_real.device(), requires_grad=True
+        size=(
+            len(from_real.keys()), 
+            from_real[0].shape[0], 
+            *np.ones(len(from_real[0].shape) - 1
+            ).astype(int)),
+        device=from_real[0].device, requires_grad=True
     )
+    
     x_hat = OrderedDict()
 
     for layer in range(discriminator.num_blocks):
@@ -30,8 +36,8 @@ def gradient_penalty_loss(discriminator, from_real, from_fake):
     output = cat(
         [((
             norm(i.reshape(dis_out.shape[0], -1), ord=2, dim=1) 
-            - ones(dis_out.shape[0], requires_grad=True, device=from_real.device)
-            ) ** 2.).unsqueeze(1) for i in grad], 1).mean()
+            - ones(dis_out.shape[0], requires_grad=True, device=from_real[0].device)
+            ) ** 2.).unsqueeze(1) for i in grads], 1).mean()
 
     return output
 

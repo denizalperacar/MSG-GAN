@@ -10,7 +10,7 @@ from torch import (
     )
 from collections import OrderedDict
 
-from custom import (
+from .custom import (
     GeneratorInitialBlock, 
     GeneratorBlock, 
     DiscriminatorInitialBlock,
@@ -144,7 +144,7 @@ class Discriminator(Module):
 
     def forward(self, img_dict):
 
-        idx = list(img_dict.keys())[::-1]
+        idx = sorted(list(img_dict.keys()))[::-1]
         x = self.blocks[0](img_dict[idx[0]])
         for blk in range(1, self.num_blocks):
             x = self.blocks[blk](x, img_dict[idx[blk]])
@@ -155,7 +155,7 @@ class Discriminator(Module):
 
 
 if __name__ == "__main__":
-    
+    """ 
     dev = device("cuda:0")
     # for i in range(100):
     num = 6
@@ -169,14 +169,15 @@ if __name__ == "__main__":
 
     f = dis(h)
 
-    """ 
+    
     epsilon = rand(
         size=(num, h[0].shape[0], *np.ones(len(h[0].shape) - 1).astype(int)),
         device=h[0].device, requires_grad=True
     )
     x_hat = OrderedDict()
     for layer in range(num):
-        x_hat[layer] = (epsilon[layer] * ones_like(h[layer], requires_grad=True)  + (1-epsilon[layer]) * h[layer]).requires_grad_(True)
+        x_hat[layer] = (epsilon[layer] * ones_like(h[layer], requires_grad=True)  
+        + (1-epsilon[layer]) * h[layer]).requires_grad_(True)
     
     output = dis(x_hat)
     
