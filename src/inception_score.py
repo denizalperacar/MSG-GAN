@@ -12,19 +12,15 @@ class Inception_Score(Module):
         super(Inception_Score, self).__init__()
         self.model = inception_v3(pretrained=True, transform_input=True).to(device)
         self.model.eval()
-        #self.preprocess =  # we need to preprocess images before we feed them to the inception_v3 network 
         self.device = device
     
-    def forward(self, images_set, batch_size=32, num_splits=10):
-        loader = DataLoader(images_set, batch_size=batch_size, shuffle=True)
-
+    def forward(self, images, batch_size=32, num_splits=10):
         with torch.no_grad():
-            all_preds = torch.zeros((len(images_set), 1000))
+            all_preds = torch.zeros((len(images), 1000))
             ind = 0
-            for images_batch in loader:
-                images_batch = images_batch.to(self.device)
+            for idx in range(0, len(images), batch_size):
+                images_batch = images[idx:idx+batch_size].to(self.device)
 
-                #images_batch = self.preprocess(images_batch)
                 preds = self.model(images_batch)
                 preds = softmax(preds, dim=1)
                 all_preds[ind:ind+preds.shape[0]] = preds
