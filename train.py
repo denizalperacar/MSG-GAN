@@ -20,19 +20,19 @@ from src.data_loader import DataLoader
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--num_epochs", type=int, default=100, help="number of epochs of training")
-parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
-parser.add_argument("--lr", type=float, default=0.003, help="RMSPROP: learning rate")
+parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
+parser.add_argument("--lr", type=float, default=0.00001, help="RMSPROP: learning rate")
 parser.add_argument("--latent_dim", type=int, default=128, help="dimensionality of the latent space")
 parser.add_argument("--num_blocks", type=int, default=4, help="number of generator blocks")
 parser.add_argument("--use_gpu", type=bool, default=True, help="Use GPU for training")
 parser.add_argument("--save_skips", type=int, default=200, help="number of epochs to skip saving the model")
-parser.add_argument("--continue_checkpoint", type=bool, default=False, help="Continue from the last checkpoint")
+parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Continue from the last checkpoint")
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
 parser.add_argument("--n_disc", type=int, default=1, help="the number of discriminator iterations per generator iteration")
 parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dataset either CIFAR10 or CelebA")
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
-parser.add_argument("--gen_steps", type=int, default=100, help="save the image of the generated images each gen_steps")
+parser.add_argument("--gen_steps", type=int, default=1000, help="save the image of the generated images each gen_steps")
 parser.add_argument("--lamda", type=float, default=10., help="lamda used in WGAN-GP")
 
 opt = parser.parse_args()
@@ -92,6 +92,10 @@ generator_loss_tracker = LossTracker(
 # while theta has not converged do: 
 # from Improved training of Wasserstein GANs p-4
 
+test_variable = get_latent_variable(
+    256, opt.latent_dim, device
+    )
+
 converged = False
 loss_tracker = []
 counter = 0
@@ -143,11 +147,9 @@ while not converged:
     if counter % opt.gen_steps == 0:
         
 
-        latent_variable = get_latent_variable(
-            20, opt.latent_dim, device
-            )
-        fake_images = generator(latent_variable)[opt.num_blocks-1].to("cpu")
-        save_image(fake_images.data[:20], f"{opt.images}/%d.png" % counter, nrow=5, value_range=(-1,1), normalize=True)
+
+        fake_images = generator(test_variable)[opt.num_blocks-1].to("cpu")
+        save_image(fake_images.data[:256], f"{opt.images}/%d.png" % counter, nrow=16, value_range=(-1,1), normalize=True)
         
         # statistics of discriminator
         print(print_string.format(
@@ -155,17 +157,3 @@ while not converged:
             *discriminator_loss_tracker.loss_tracker[-1],
             time()-start_time))
         start_time = time()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
