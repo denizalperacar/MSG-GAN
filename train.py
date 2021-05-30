@@ -19,7 +19,7 @@ from src.data_loader import DataLoader
 # Parse the arguments of the model
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--num_epochs", type=int, default=100, help="number of epochs of training")
+parser.add_argument("--num_epochs", type=int, default=-1, help="number of epochs of training")
 parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.00001, help="RMSPROP: learning rate")
 parser.add_argument("--latent_dim", type=int, default=128, help="dimensionality of the latent space")
@@ -80,6 +80,7 @@ discriminator_optimizer = RMSprop(
 data_loader = DataLoader(
     opt.dataset, opt.batch_size, opt.num_blocks, device
     )
+num_counters_per_epoch = (data_loader.get_len() // batch_size) + int(data_loader.get_len() % batch_size)
 
 # track loss stats of the model
 discriminator_loss_tracker = LossTracker(
@@ -157,3 +158,8 @@ while not converged:
             *discriminator_loss_tracker.loss_tracker[-1],
             time()-start_time))
         start_time = time()
+    
+    if  (num_epochs > 0) and (counter == (num_counter_per_epoch * num_epochs)):
+        generator.save(f"{opt.save_dir}/generator")
+        discriminator.save(f"{opt.save_dir}/discriminator")
+        break
