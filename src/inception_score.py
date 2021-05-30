@@ -4,6 +4,7 @@ from torchvision.models.inception import inception_v3
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.nn.functional import softmax
+from torchvision.transforms.functional import resize
 from math import ceil
 
 class Inception_Score(Module):
@@ -19,7 +20,7 @@ class Inception_Score(Module):
             all_preds = torch.zeros((len(images), 1000))
             ind = 0
             for idx in range(0, len(images), batch_size):
-                images_batch = images[idx:idx+batch_size].to(self.device)
+                images_batch = resize(images[idx:idx+batch_size].to(self.device), [299, 299])
 
                 preds = self.model(images_batch)
                 preds = softmax(preds, dim=1)
