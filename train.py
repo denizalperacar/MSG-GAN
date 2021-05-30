@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--num_epochs", type=int, default=-1, help="number of epochs of training")
 parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
-parser.add_argument("--lr", type=float, default=0.00001, help="RMSPROP: learning rate")
+parser.add_argument("--lr", type=float, default=0.0001, help="RMSPROP: learning rate")
 parser.add_argument("--latent_dim", type=int, default=128, help="dimensionality of the latent space")
 parser.add_argument("--num_blocks", type=int, default=4, help="number of generator blocks")
 parser.add_argument("--use_gpu", type=bool, default=True, help="Use GPU for training")
@@ -46,6 +46,9 @@ print_string = (
 # Check if the required directories exist
 if not os.path.exists(opt.save_dir):
     os.mkdir(opt.save_dir)
+opt.save_dir = f"{opt.save_dir}{opt.dataset}"
+if not os.path.exists(opt.save_dir):
+    os.mkdir(opt.save_dir) 
 if not os.path.exists(opt.images):
     os.mkdir(opt.images)
 
