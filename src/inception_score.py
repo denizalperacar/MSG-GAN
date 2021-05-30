@@ -4,7 +4,7 @@ from torchvision.models.inception import inception_v3
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.nn.functional import softmax
-from torchvision.transforms.functional import resize
+from torchvision.transforms.functional import resize, normalize
 from math import ceil
 
 class Inception_Score(Module):
@@ -19,6 +19,13 @@ class Inception_Score(Module):
         with torch.no_grad():
             all_preds = torch.zeros((len(images), 1000))
             ind = 0
+
+            images_std_0, images_mean_0 = torch.std_mean(images[:,0,:,:])
+            images_std_1, images_mean_1 = torch.std_mean(images[:,1,:,:])
+            images_std_2, images_mean_2 = torch.std_mean(images[:,2,:,:])
+
+            images = normalize(images, mean=(images_mean_0, images_mean_1, images_mean_2), std=(images_std_0, images_std_1, images_std_2))
+
             for idx in range(0, len(images), batch_size):
                 images_batch = resize(images[idx:idx+batch_size].to(self.device), [299, 299])
 
