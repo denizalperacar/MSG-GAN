@@ -35,6 +35,7 @@ class DataLoader:
 
             ds = torchvision.datasets.CelebA(root=data_root, split='all', download=True, transform=transform)
 
+        self.ds_len = len(ds)
         self.dataloader = torch.utils.data.DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
@@ -48,3 +49,6 @@ class DataLoader:
             imgs = avg_pool2d(imgs, kernel_size=2)
         
         return x
+
+    def get_len(self):
+        return self.ds_len
