@@ -80,7 +80,9 @@ discriminator_optimizer = RMSprop(
 data_loader = DataLoader(
     opt.dataset, opt.batch_size, opt.num_blocks, device
     )
-num_counters_per_epoch = (data_loader.get_len() // batch_size) + int(data_loader.get_len() % batch_size)
+num_counters_per_epoch = (
+    (data_loader.get_len() // opt.batch_size) 
+    + int(data_loader.get_len() % opt.batch_size))
 
 # track loss stats of the model
 discriminator_loss_tracker = LossTracker(
@@ -159,7 +161,7 @@ while not converged:
             time()-start_time))
         start_time = time()
     
-    if  (num_epochs > 0) and (counter == (num_counter_per_epoch * num_epochs)):
+    if  (opt.num_epochs > 0) and (counter == (num_counters_per_epoch * opt.num_epochs)):
         generator.save(f"{opt.save_dir}/generator")
         discriminator.save(f"{opt.save_dir}/discriminator")
         break
