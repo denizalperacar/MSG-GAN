@@ -24,9 +24,9 @@ parser.add_argument("--batch_size", type=int, default=16, help="size of the batc
 parser.add_argument("--lr", type=float, default=0.0001, help="RMSPROP: learning rate")
 parser.add_argument("--latent_dim", type=int, default=128, help="dimensionality of the latent space")
 parser.add_argument("--num_blocks", type=int, default=4, help="number of generator blocks")
-parser.add_argument("--use_gpu", type=bool, default=True, help="Use GPU for training")
+parser.add_argument("--use_gpu", type=int, default=1, help="Use GPU for training")
 parser.add_argument("--save_skips", type=int, default=200, help="number of epochs to skip saving the model")
-parser.add_argument("--continue_checkpoint", type=bool, default=True, help="Continue from the last checkpoint")
+parser.add_argument("--continue_checkpoint", type=int, default=1, help="Continue from the last checkpoint")
 parser.add_argument("--save_dir", type=str, default=f"{getcwd()}/weights/", help="Continue from the last checkpoint")
 parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="Continue from the last checkpoint")
 parser.add_argument("--n_disc", type=int, default=1, help="the number of discriminator iterations per generator iteration")
@@ -52,7 +52,7 @@ if not os.path.exists(opt.save_dir):
 if not os.path.exists(opt.images):
     os.mkdir(opt.images)
 
-device = torch.device("cuda:0") if opt.use_gpu else torch.device("cpu") 
+device = torch.device("cuda:0") if opt.use_gpu == 1 else torch.device("cpu") 
 
 # create the models
 generator = Generator(
@@ -65,7 +65,7 @@ discriminator = Discriminator(
     ).to(device)
 
 # Load the models if necessary
-if opt.continue_checkpoint:
+if opt.continue_checkpoint == 1:
     generator = torch.load(f'{opt.save_dir}/generator')
     discriminator = torch.load(f'{opt.save_dir}/discriminator')
 
