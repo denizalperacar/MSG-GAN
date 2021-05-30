@@ -32,7 +32,7 @@ parser.add_argument("--images", type=str, default=f"{getcwd()}/images/", help="C
 parser.add_argument("--n_disc", type=int, default=1, help="the number of discriminator iterations per generator iteration")
 parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dataset either CIFAR10 or CelebA")
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
-parser.add_argument("--gen_steps", type=int, default=1000, help="save the image of the generated images each gen_steps")
+parser.add_argument("--gen_steps", type=int, default=100, help="save the image of the generated images each gen_steps")
 parser.add_argument("--lamda", type=float, default=10., help="lamda used in WGAN-GP")
 
 opt = parser.parse_args()
@@ -152,8 +152,6 @@ while not converged:
     
     if counter % opt.gen_steps == 0:
         
-
-
         fake_images = generator(test_variable)[opt.num_blocks-1].to("cpu")
         save_image(fake_images.data[:256], f"{opt.images}/%d.png" % counter, nrow=16, value_range=(-1,1), normalize=True)
         
