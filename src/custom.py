@@ -31,7 +31,7 @@ def pixel_norm(x, epsilon=1e-8):
     return x / sqrt((x**2.).mean(axis=1, keepdim=True) + epsilon)
 
 
-def minbatchstd(x, group_size=4, eps=1e-8):
+def minbatchstd(x, group_size=2, eps=1e-8):
     """Implementation of the minbatch standard deviation.
     """
     
@@ -358,7 +358,7 @@ class LossTracker:
             self, num_iters=100, 
             save_iters=100, 
             eps=1e-4,
-            save_dir="../stats",
+            save_dir=f"{os.getcwd()}/stats",
             save_name="discriminator_loss"
             ):
         self.num_iters = num_iters
@@ -389,7 +389,7 @@ class LossTracker:
                 tracker.std()
                 ])
             self.tracker = []
-        if len(self.loss_tracker) % (self.save_iters * self.num_iters)  == 0:
+        if len(self.loss_tracker) % (self.save_iters)  == 0:
             with open(f"{self.save_dir}/{self.save_name}.pickle", "wb") as fid:
                 pickle.dump(self.loss_tracker, fid)
     
