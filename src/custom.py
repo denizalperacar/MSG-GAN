@@ -17,7 +17,9 @@ import os
 
 
 def get_latent_variable(batchsize, latent_dimension, device):
-
+    """Creates a random vector of size (batchsize, latent_dimension)
+        from normal distribution.
+    """
     latent_var = randn(
         (batchsize, latent_dimension), requires_grad=True
         ).to(device)
@@ -54,7 +56,14 @@ def minbatchstd(x, group_size=2, eps=1e-8):
 
 
 class Linear(Module):
-    "Overloading the Linear layer for compatibility with paper."
+    """Overloading the Linear layer for compatibility with paper.
+
+    The standard pytorch implementation of Linear layer 
+    uses kiaming_uniform_ to initilize the weights it is 
+    modified to conform with the paper Progressive Growing of 
+    GANs for Improved Quality, Stability, and Variation paper 
+    for initialization.
+    """
 
     def __init__(self, in_features, out_features, bias=True):
         super().__init__()
@@ -69,7 +78,14 @@ class Linear(Module):
     
 
 class Conv2d(Module):
-    "Overloading the Conv2d layer for compatibility with paper."
+    """Overloading the Conv2d layer for compatibility with paper.
+
+    The standard pytorch implementation of _ConvNd layer 
+    uses init.kaiming_uniform_(self.weight, a=math.sqrt(5)) 
+    to initilize the weights it is modified to conform 
+    with the paper Progressive Growing of GANs for Improved 
+    Quality, Stability, and Variation paper for initialization.    
+    """
 
     def __init__(
         self, in_channels, out_channels, 
@@ -97,7 +113,24 @@ class Conv2d(Module):
 
 
 class PhiScheme(Module):
-    "Defines the phi scheme used in the paper."
+    """Defines the phi scheme described in the paper.
+
+    phi is a function used to combine the output o_i 
+    of the (i)th intermediate layer of the generator 
+    (or correspondingly downsampled version of the 
+    highest resolution real image y) with the 
+    corresponding output of the (j−1)th 
+    intermediate layer in the discriminator.
+
+    []  -> indicates concatination
+    r() -> 1x1 convolution operation
+    phi_{simple}(x1, x2) = [x1; x2]
+    phi_{lin-cat}(x1, x2) = [r(x1); x2]
+    phi_{cat-lin}(x1, x2) = r([x1; x2])
+
+    see: https://arxiv.org/pdf/1903.06048.pdf
+    equations: 11-12-13
+    """
 
     def __init__(self, img_channels, in_channels, scheme="simple") -> Tensor:
         super().__init__()
@@ -124,7 +157,20 @@ class PhiScheme(Module):
         
 
 class FromRGB(Module):
-    "Implementation of FromRGB 0 in paper [1] page 11"
+    """Implementation of FromRGB 0 in paper page 11 Table 7
+    
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table: 7
+
+    Here FromRGB is implemented as a 1x1 convolution 
+    operation to convert image channel size to the model
+    required channels as described in Progressive Growing
+    of GANs for Improved Quality, Stability, and Variation
+    page 4 figure 2 description.
+
+    see: https://arxiv.org/pdf/1710.10196.pdf
+    Table 2. 
+    """
 
     def __init__(self, img_channels, out_channels) -> Tensor:
         super().__init__()
@@ -141,6 +187,26 @@ class FromRGB(Module):
 
 class GeneratorInitialBlock(Module):
     """Implements the initial block of the generator.
+
+    The generator consists of two distinct block types.
+    
+    GeneratorInitialBlock is the initial block of the generator
+    of MSG-ProGAN that converts the latent vector to the input 
+    of the second block.
+
+    Its signature is as follows:
+    latent vector -> Norm -> conv4x4 -> 
+    -> LReLU -> conv3x3 -> LReLU -> output
+
+    Here instead of conv4x4 we did the following:
+    
+    let s = latent vector dimension
+    
+    latent vector -> Norm -> 
+    -> Linear(N, s, s*4*4).reshape(N, s, 4, 4)
+
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table 6: Generator architecture for the MSG-ProGAN model.
     """
 
     def __init__(
@@ -166,6 +232,7 @@ class GeneratorInitialBlock(Module):
             in_channels=self.out_channels, 
             out_channels=self.img_channels, 
             kernel_size=1)
+        
     def forward(self, x, generate_img=True):
         x = self.linear(x)
         x = x.view(-1, self.in_dimension, 
@@ -184,7 +251,19 @@ class GeneratorInitialBlock(Module):
 
 
 class GeneratorBlock(Module):
-    "Generator mid blocks."
+    """Implementation of the Generator blocks.
+
+    The blocks 2 to 9 in Table 6. have the same 
+    signature and are implemened in this class.
+
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table 6: Generator architecture for the MSG-ProGAN model.
+    
+    The signature of the mid blocks is as follows:
+    a_{i-1} = Output of activation of previous layer.
+    a_{i-1} -> Upsample -> conv3x3 -> LReLU ->
+            -> conv3x3 -> LReLU -> a_{i}
+    """
 
     def __init__(
             self, in_channels=512, out_channels=512, 
@@ -222,7 +301,9 @@ class GeneratorBlock(Module):
 
 
 class DiscriminatorFinalBlock(Module):
-    "Implementation of the final block of the discriminator/critic"
+    """Implementation of the final block of the discriminator/critic
+    
+    """
 
     def __init__(
             self, in_channel, out_channel, spatial_dimension=4,
@@ -399,36 +480,3 @@ class LossTracker:
         else:
             self.previous = self.current
             return False
-
-
-if __name__ == "__main__":
-    
-    a = randn(10, 2, 2, 2)
-    # print(a)
-    b = pixel_norm(a)
-    # print(b)
-
-    """
-    dev = device("cuda:0")
-
-    o0 = randn(8, 3, 16, 16).to(dev)
-    o1 = randn(8, 3, 8, 8).to(dev)
-    o2 = randn(8, 3, 4, 4).to(dev)
-    d_i = DiscriminatorInitialBlock(512, 512).to(dev)
-    d_m = DiscriminatorMidBlock(512, 512).to(dev)
-    d_f = DiscriminatorFinalBlock(512).to(dev)
-    print(d_f(d_m(d_i(o0), o1), o2).shape)
-
-    a1 = GeneratorInitialBlock(512, 4, 512).to(dev)
-    a2 = GeneratorBlock(512,512,2).to(dev)
-    a3 = GeneratorBlock(512,512,2).to(dev) 
-    a4 = GeneratorBlock(512,512,2).to(dev) 
-    a5 = GeneratorBlock(512,256,2).to(dev) 
-    a6 = GeneratorBlock(256,128,2).to(dev) 
-
-    for i in range(10000):
-        
-        y = a6(a5(a4(a3(a2(a1(x)[0])[0])[0])[0])[0])[0]
-        print(y.shape)
-    """
-    
