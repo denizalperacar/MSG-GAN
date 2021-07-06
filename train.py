@@ -52,13 +52,16 @@ if not os.path.exists(opt.save_dir):
 if not os.path.exists(opt.images):
     os.mkdir(opt.images)
 
+# set the device of the model
 device = torch.device("cuda:0") if opt.use_gpu == 1 else torch.device("cpu") 
 
-# create the models
+# Create the models
+## Create Generator
 generator = Generator(
     opt.num_blocks,
     channels=np.array([512,512,512,512,512,256,128,64,32,16]).astype(int)//4
     ).to(device)
+## Create Discriminator
 discriminator = Discriminator(
     opt.num_blocks,
     channels=np.array([16, 32, 64, 128, 256, 512, 512, 512, 512, 512]).astype(int)//4
@@ -150,6 +153,7 @@ while not converged:
         generator.save(f"{opt.save_dir}/generator")
         discriminator.save(f"{opt.save_dir}/discriminator")
     
+    # Save image checkpoint
     if counter % opt.gen_steps == 0:
         
         fake_images = generator(test_variable)[opt.num_blocks-1].to("cpu")

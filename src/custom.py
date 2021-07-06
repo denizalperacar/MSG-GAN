@@ -301,8 +301,27 @@ class GeneratorBlock(Module):
 
 
 class DiscriminatorFinalBlock(Module):
-    """Implementation of the final block of the discriminator/critic
+    """Implementation of the final block of the discriminator.
+    The discriminator consists of three distinct block types. 
+
+    The initial and final blocks of the discriminator are 
+    always present and the number of mid blocks might change
+    due to the desired resolution and thus the total number 
+    of blocks that are going to be used in the model.
+
+
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table 7: Discriminator architecture for the MSG-ProGAN model.
+
+    The signature of the final block is as follows:
     
+    (input, a{l-1}) -> phi_{simple} -> MinBatchStd -> 
+        conv3x3 -> LReLU -> conv4x4 -> LReLU -> Linear 
+        -> output
+
+    input  -> (N, 3, 4, 4)
+    a{l-1} -> (N, 515, 4, 4)
+    output -> (N, 1, 1) 
     """
 
     def __init__(
@@ -346,7 +365,28 @@ class DiscriminatorFinalBlock(Module):
 
 
 class DiscriminatorMidBlock(Module):
-    "Implementation of the final block of the discriminator/critic"
+    """Implementation of the mid block of the discriminator/critic
+    The discriminator consists of three distinct block types. 
+
+    The initial and final blocks of the discriminator are 
+    always present and the number of mid blocks might change
+    due to the desired resolution and thus the total number 
+    of blocks that are going to be used in the model.
+
+
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table 7: Discriminator architecture for the MSG-ProGAN model.
+
+    The signature of the final block is as follows:
+    
+    (input, a{l-1}) -> phi_{simple} -> MinBatchStd -> 
+        conv3x3 -> LReLU -> conv3x3 -> LReLU -> AvgPool 
+        -> output
+
+    input  -> (N, 3, dim, dim)
+    a{l-1} -> (N, 515, dim, dim)
+    output -> (N, dim//2, dim//2)    
+    """
 
     def __init__(
             self, in_channel, out_channel, img_channel=3, 
@@ -388,7 +428,27 @@ class DiscriminatorMidBlock(Module):
 
 
 class DiscriminatorInitialBlock(Module):
-    "Implementation of the initial block of the discriminator/critic"
+    """Implementation of the initial block of the discriminator/critic
+    The discriminator consists of three distinct block types. 
+
+    The initial and final blocks of the discriminator are 
+    always present and the number of mid blocks might change
+    due to the desired resolution and thus the total number 
+    of blocks that are going to be used in the model.
+
+
+    see: https://arxiv.org/pdf/1903.06048.pdf 
+    Table 7: Discriminator architecture for the MSG-ProGAN model.
+
+    The signature of the final block is as follows:
+    
+    img -> FromRGB 0 -> MinBatchStd -> conv3x3 -> LReLU 
+        -> conv3x3 -> LReLU -> AvgPool -> output
+
+    input  -> (N, 3, dim, dim)
+    output -> (N, dim//2, dim//2)  
+    
+    """
 
     def __init__(
             self, in_channel, out_channel, img_channel=3, 
@@ -430,9 +490,8 @@ class DiscriminatorInitialBlock(Module):
 class LossTracker:
     """Tracks the loss
     Adds the statistics of the loss each num_iters times
-    to loss_tracker list.
-    Saves the results to a pickle each num_iters * save_iters
-    times.
+    to loss_tracker list. Saves the results to a pickle 
+    each num_iters * save_iters times.
     """
 
     def __init__(

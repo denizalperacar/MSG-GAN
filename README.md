@@ -20,3 +20,12 @@ Please see the jupyter notebook file [main.ipynb](main.ipynb) for a summary of p
 
 
 **Solution to CelebA Download Error**: In case the code fails to download CelebA Dataset, download [this](https://drive.google.com/drive/folders/1hDQKv_NbYv2lk2sdBiVPQQivMWNSqTOC?usp=sharing) folder and place it under data/.
+
+
+## Usage
+
+Call the model from terminal in the following way:
+
+```bash
+$ python3 train.py --save_dir test/ --continue_checkpoint 1 --num_epochs 1 --lr 0.0001 --batch_size 16 --latent_dim 128 --num_blocks 4 --use_gpu 1 --n_disc 1 --dataset CIFAR10 --lamda 10.0
+```

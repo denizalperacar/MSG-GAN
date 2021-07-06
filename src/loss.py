@@ -6,9 +6,11 @@ from .model import Discriminator
 from collections import OrderedDict
 
 def gradient_penalty_loss(discriminator, from_real, from_fake):
-    """
-    Computes the gradient penalty in the WGAN-GP loss. Since MSG-GAN computes the loss using different sized versions of
-    the same image, gradient penalty is computed seperately for each size and the return value is their average.
+    """Computes the gradient penalty in the WGAN-GP loss. 
+    Since MSG-GAN computes the loss using different sized 
+    versions of the same image, gradient penalty is 
+    computed seperately for each size and the return 
+    value is their average.
     """
     epsilon = rand(
         size=(
@@ -46,7 +48,8 @@ def gradient_penalty_loss(discriminator, from_real, from_fake):
 
 def WGANGP_loss(discriminator, from_real, from_fake, lamda=10.):
     """
-    Computes the WGAN-GP loss published in 'Improved Training of Wasserstein GANs' (arxiv.org/abs/1704.00028).
+    Computes the WGAN-GP loss published in 'Improved Training of Wasserstein GANs' 
+    (arxiv.org/abs/1704.00028).
     Args:
         discriminator: discriminator model
         from_real: real images

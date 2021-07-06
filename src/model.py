@@ -91,8 +91,8 @@ class Generator(Module):
 
 
 class Discriminator(Module):
-    """
-    Discriminator of the MSG-GAN. Its architecture is explained in main.ipynb.
+    """Discriminator of the MSG-GAN. 
+    Its architecture is explained in main.ipynb.
     """
     def __init__(
             self, 
@@ -109,16 +109,19 @@ class Discriminator(Module):
             ):
         """
         Args:
-            num_blocks: number of blocks in the model. see table 7 in the paper for the information about blocks
+            num_blocks: number of blocks in the model. 
+                see table 7 in the paper for the information about blocks
             channels: number of channels in blocks
             kernel_size: kernel size of the convolution operations
             padding: padding of the convolution operations
             stride: stride of the convolution operations
-            final_spatial_dim: size of the smallest model input image, which is the input of final block
+            final_spatial_dim: size of the smallest model input image, 
+                which is the input of final block
             img_channels: number of image channels
             activation: activation function used in the model
             dimension_reduction: image size multiplier between blocks
-            scheme: phi scheme used in the model. available options are 'simple', 'lin_cat' and 'cat_lin'
+            scheme: phi scheme used in the model. 
+                available options are 'simple', 'lin_cat' and 'cat_lin'
         """
         super().__init__()
 

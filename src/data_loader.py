@@ -6,14 +6,17 @@ from collections import OrderedDict
 
 class DataLoader:
     """
-    This class provides functions to load images from datasets. Available datasets are 'CIFAR10' and 'CelebA'.
+    This class provides functions to load images from datasets. 
+    Available datasets are 'CIFAR10' and 'CelebA'.
 
     Args:
         dataset: name of the dataset
         batch_size: number of images in each batch
         num_blocks: number of blocks of generator and discriminator
         device: device that runs the model
-        data_root: path containing the dataset. if dataset is not already downloaded, class downloads them automatically
+        data_root: path containing the dataset. 
+            if dataset is not already downloaded, 
+            class downloads them automatically
 
     NOTE: IF YOU CAN NOT DOWNLOAD/USE CELEBA DATASET, CHECK README FILE. 
     """
@@ -52,8 +55,10 @@ class DataLoader:
 
     def load_images(self):
         """
-        This function returns a batch of images. Since the model uses different sized versions of the same image,
-        we resize and return a dictionary, whose batch with index i corresponds to  i-th generator/discriminator block.
+        This function returns a batch of images. 
+        Since the model uses different sized versions of the same image,
+        we resize and return a dictionary, whose batch with index i 
+        corresponds to  i-th generator/discriminator block.
         """
         x = OrderedDict()
         imgs, _ = self.dataloader._get_iterator().__next__()

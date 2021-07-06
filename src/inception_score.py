@@ -9,7 +9,8 @@ from math import ceil
 
 class Inception_Score(Module):
     """
-    Class to compute Inception Score published in 'Improved Techniques for Training GANs' (arxiv.org/abs/1606.03498).
+    Class to compute Inception Score published in 
+    'Improved Techniques for Training GANs' (arxiv.org/abs/1606.03498).
     __init__ function downloads the pretrained inception_v3 model.
     forward function computes the score.
     """
