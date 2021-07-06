@@ -6,8 +6,8 @@ Animesh Karnewar and Oliver Wang
 
 *CVPR 2020*
 
-<img src="doc/cifar10_res.png" width="600" height="auto"/>
-<img src="doc/celeba_res.png" width="600" height="auto"/>
+<img src="doc/cifar10_res.png" width="600"/>
+<img src="doc/celeba_res.png" width="600"/>
 
 This folder provides a re-implementation of this paper in PyTorch, developed as part of the course METU CENG 796 - Deep Generative Models. The re-implementation is provided by:
 
@@ -24,7 +24,7 @@ Please see the jupyter notebook file [main.ipynb](main.ipynb) for a summary of p
 
 ## Usage
 
-Call the train from terminal in the following way:
+Call the train.py from terminal to train the model in the following way:
 
 ```bash
 $ python3 train.py --save_dir test/ --continue_checkpoint 1 --num_epochs 1 --lr 0.0001 --batch_size 16 --latent_dim 128 --num_blocks 4 --use_gpu 1 --n_disc 1 --dataset CIFAR10 --lamda 10.0
