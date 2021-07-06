@@ -5,7 +5,18 @@ from torch.nn.functional import avg_pool2d
 from collections import OrderedDict
 
 class DataLoader:
+    """
+    This class provides functions to load images from datasets. Available datasets are 'CIFAR10' and 'CelebA'.
 
+    Args:
+        dataset: name of the dataset
+        batch_size: number of images in each batch
+        num_blocks: number of blocks of generator and discriminator
+        device: device that runs the model
+        data_root: path containing the dataset. if dataset is not already downloaded, class downloads them automatically
+
+    NOTE: IF YOU CAN NOT DOWNLOAD/USE CELEBA DATASET, CHECK README FILE. 
+    """
     def __init__(self, dataset:str, batch_size=32, num_blocks=9, device="cuda", data_root="data/"):
         available_datasets = ["CIFAR10", "CelebA"]
 
@@ -40,6 +51,10 @@ class DataLoader:
 
 
     def load_images(self):
+        """
+        This function returns a batch of images. Since the model uses different sized versions of the same image,
+        we resize and return a dictionary, whose batch with index i corresponds to  i-th generator/discriminator block.
+        """
         x = OrderedDict()
         imgs, _ = self.dataloader._get_iterator().__next__()
         imgs = imgs.to(self.device)
@@ -51,4 +66,7 @@ class DataLoader:
         return x
 
     def get_len(self):
+        """
+        This function returns the size of the dataset.
+        """
         return self.ds_len
