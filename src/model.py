@@ -13,8 +13,9 @@ from .custom import (
     )
 
 class Generator(Module):
-    "Generator of the MSG-GAN."
-
+    """
+    Generator of the MSG-GAN. Its architecture is explained in main.ipynb.
+    """
     def __init__(self, 
             num_blocks=2,
             channels=[512,512,512,512,512,256,128,64,32,16],
@@ -26,6 +27,18 @@ class Generator(Module):
             activation=LeakyReLU(0.2),
             scale_factor=2,
             ):
+        """
+        Args:
+            num_blocks: number of blocks in the model. see table 6 in the paper for the information about blocks
+            channels: number of channels in blocks
+            kernel_size: kernel size of the convolution operations
+            padding: padding of the convolution operations
+            stride: stride of the convolution operations
+            initial_spatial_dim: size of the smallest model output image, which is the output of first block
+            img_channels: number of image channels
+            activation: activation function used in the model
+            scale_factor: image size multiplier between blocks
+        """
         super().__init__()
         
         err = "num blocks must be less then len(channels)."
@@ -58,6 +71,9 @@ class Generator(Module):
             )
     
     def forward(self, x, generate_images=range(9)):
+        """
+        This function returns generated images of different sizes.
+        """
         imgs_out = OrderedDict()
 
         for blk in range(self.num_blocks):
@@ -68,12 +84,16 @@ class Generator(Module):
         return imgs_out
     
     def save(self, address):
+        """
+        This functions saves the model at the given address.
+        """
         save(self, address)
 
 
 class Discriminator(Module):
-    "Discriminator of the MSG-GAN."
-
+    """
+    Discriminator of the MSG-GAN. Its architecture is explained in main.ipynb.
+    """
     def __init__(
             self, 
             num_blocks=2,
@@ -87,6 +107,19 @@ class Discriminator(Module):
             dimension_reduction=2,
             scheme="simple"
             ):
+        """
+        Args:
+            num_blocks: number of blocks in the model. see table 7 in the paper for the information about blocks
+            channels: number of channels in blocks
+            kernel_size: kernel size of the convolution operations
+            padding: padding of the convolution operations
+            stride: stride of the convolution operations
+            final_spatial_dim: size of the smallest model input image, which is the input of final block
+            img_channels: number of image channels
+            activation: activation function used in the model
+            dimension_reduction: image size multiplier between blocks
+            scheme: phi scheme used in the model. available options are 'simple', 'lin_cat' and 'cat_lin'
+        """
         super().__init__()
 
         err = "num blocks must be less then len(channels)."
@@ -135,7 +168,9 @@ class Discriminator(Module):
         )
 
     def forward(self, img_dict):
-
+        """
+        This function returns the discriminator output.
+        """
         idx = sorted(list(img_dict.keys()))[::-1]
         x = self.blocks[0](img_dict[idx[0]])
         for blk in range(1, self.num_blocks):
@@ -143,53 +178,7 @@ class Discriminator(Module):
         return x
     
     def save(self, address):
+        """
+        This functions saves the model at the given address.
+        """
         save(self, address)
-
-
-if __name__ == "__main__":
-    """ 
-    dev = device("cuda:0")
-    # for i in range(100):
-    num = 6
-    z = randn(8, 512).to(dev)
-    gen = Generator(num).to(dev)
-    dis = Discriminator(num).to(dev)
-    h = gen(z)
-
-    for i in h.keys():
-        print(h[i].shape) 
-
-    f = dis(h)
-
-    
-    epsilon = rand(
-        size=(num, h[0].shape[0], *np.ones(len(h[0].shape) - 1).astype(int)),
-        device=h[0].device, requires_grad=True
-    )
-    x_hat = OrderedDict()
-    for layer in range(num):
-        x_hat[layer] = (epsilon[layer] * ones_like(h[layer], requires_grad=True)  
-        + (1-epsilon[layer]) * h[layer]).requires_grad_(True)
-    
-    output = dis(x_hat)
-    
-    b = torch.autograd.grad(
-        output, 
-        [x_hat[i] for i in x_hat.keys()], 
-        grad_outputs=ones_like(output, 
-        requires_grad=True),
-        create_graph=True,
-        retain_graph=True
-    )
-    
-    c = cat(
-        [
-            (
-                (
-                    norm(i.reshape(output.shape[0], -1), ord=2, dim=1) 
-                    - ones(output.shape[0], requires_grad=True, device=f.device)
-            ) ** 2.).unsqueeze(1) for i in b], 1).mean()
-    print(c)
- """
-
-
