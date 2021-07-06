@@ -35,7 +35,7 @@ $ python3 train.py --save_dir test/ --continue_checkpoint 1 --num_epochs 1 --lr 
 --lr 0.0001           specify the learning rate for the optimizer \
 --batch_size 16       specify the batch size for the training \
 --latent_dim 128      specify the latent vector size of the model \
---num_blocks 4        specify the number of blocks to be used in the generator and discriminator. see (https://arxiv.org/pdf/1903.06048.pdf) Table 6. and 7. \
+--num_blocks 4        specify the number of blocks to be used in the generator and discriminator. https://arxiv.org/pdf/1903.06048.pdf Table 6-7 \
 --use_gpu 1           true to use GPU \
 --n_disc 1            Number of discriminator optimization steps before one generator optimizer step \
 --dataset CIFAR10     CIFAR10 to load Cifar 10 dataset CelebA to load CelebA dataset \
