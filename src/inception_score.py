@@ -8,7 +8,11 @@ from torchvision.transforms.functional import resize, normalize
 from math import ceil
 
 class Inception_Score(Module):
-    """Class to compute Inception Score"""
+    """
+    Class to compute Inception Score published in 'Improved Techniques for Training GANs' (arxiv.org/abs/1606.03498).
+    __init__ function downloads the pretrained inception_v3 model.
+    forward function computes the score.
+    """
     def __init__(self, device):
         super(Inception_Score, self).__init__()
         self.model = inception_v3(pretrained=True, transform_input=True).to(device)
@@ -16,6 +20,14 @@ class Inception_Score(Module):
         self.device = device
     
     def forward(self, images, batch_size=32, num_splits=10):
+        """
+        Args:
+            images: a tensor of images, whose inception score will be calculated
+            batch_size: batch size used while running the inception_v3 model
+            num_splits: number of splits used in the inception score calculations
+        Returns:
+            inception score of the given images
+        """
         with torch.no_grad():
             all_preds = torch.zeros((len(images), 1000))
             ind = 0
