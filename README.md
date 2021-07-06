@@ -6,8 +6,8 @@ Animesh Karnewar and Oliver Wang
 
 *CVPR 2020*
 
-<img src="doc/cifar10_res.png" width="300"/>
-<img src="doc/celeba_res.png" width="300"/>
+<img src="doc/cifar10_res.png" width="450" height="auto"/>
+<img src="doc/celeba_res.png" width="450" height="auto"/>
 
 This folder provides a re-implementation of this paper in PyTorch, developed as part of the course METU CENG 796 - Deep Generative Models. The re-implementation is provided by:
 
