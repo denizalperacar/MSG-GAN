@@ -34,6 +34,9 @@ parser.add_argument("--dataset", type=str, default="CIFAR10", help="Selected dat
 parser.add_argument("--conv_crit", type=float, default=1.e-4, help="Convergence Criterion")
 parser.add_argument("--gen_steps", type=int, default=100, help="save the image of the generated images each gen_steps")
 parser.add_argument("--lamda", type=float, default=10., help="lamda used in WGAN-GP")
+parser.add_argument("--root_dir", type=str, default="data/", help="Determine the data directory.")
+parser.add_argument("--is_pickle", type=bool, default=0, help="Is custom data pickle.")
+
 
 opt = parser.parse_args()
 
@@ -84,8 +87,11 @@ discriminator_optimizer = RMSprop(
 
 # loading the data
 data_loader = DataLoader(
-    opt.dataset, opt.batch_size, opt.num_blocks, device
+    opt.dataset, opt.batch_size, 
+    opt.num_blocks, device,
+    opt.root_dir, opt.is_pickle
     )
+
 num_counters_per_epoch = (
     (data_loader.get_len() // opt.batch_size) 
     + int(data_loader.get_len() % opt.batch_size))

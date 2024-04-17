@@ -12,3 +12,14 @@ src/__pycache__/loss.cpython-38.pyc
 src/__pycache__/model.cpython-38.pyc
 data/cifar-10-batches-py/test_batch
 src/__pycache__/custom.cpython-38.pyc
+src/__pycache__/__init__.cpython-312.pyc
+src/__pycache__/custom.cpython-312.pyc
+src/__pycache__/data_loader.cpython-312.pyc
+src/__pycache__/loss.cpython-312.pyc
+src/__pycache__/model.cpython-312.pyc
+test/Custom/discriminator
+test/Custom/generator
+images/100.png
+images/200.png
+images/300.png
+images/400.png
